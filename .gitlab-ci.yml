@@ -1,26 +1,18 @@
 stages:
-  - install
   - test
   - build
 
-install-job:
-  stage: install
+default:
   image: node
-  script:
+  before_script:
     - npm ci
 
 test-job:
   stage: test
-  image: node
-  dependencies:
-    - install-job
   script:
     - npm run test
 
 build-job:
   stage: build
-  image: node
-  dependencies:
-    - install-job
   script:
     - npm run build
