@@ -2,11 +2,18 @@
   "name": "tentative",
   "version": "1.0.0",
   "description": "Simple promises retry utility",
-  "author": "sim-la",
-  "license": "ISC",
   "engines": { "node": ">=20" },
+  "files": ["lib/", "!lib/*.tsbuildinfo"],
+  "keywords": ["promise", "retry", "tentative"],
+  "author": "SL",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/sim-la/tentative.git"
+  },
   "type": "module",
-  "main": "index.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc --build src",
     "test": "jest"

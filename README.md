@@ -38,7 +38,7 @@ const p = withRetries(
       delayInMs: 5000 // Wait 5 seconds between each retry
     },
     canRetry: (e) => e.message.includes('EAI_AGAIN'), // Retry only if the error is a DNS lookup error
-    onRetry: (i, delays) => console.log(`🌀 retrying in ${delays[i]}ms (attempt ${i + 1} out of ${delays.length})`) // Log some information at each retry
+    onRetry: (i, delays) => console.log(`🌀 Retrying in ${delays[i]}ms (attempt ${i + 1} out of ${delays.length})`) // Log some information at each retry
   }
 )
 
