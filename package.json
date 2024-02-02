@@ -1,7 +1,7 @@
 {
   "name": "tentative",
   "version": "1.0.0",
-  "description": "Simple promises retry utility",
+  "description": "Simple yet handy promises retry utility",
   "engines": { "node": ">=20" },
   "files": ["lib/", "!lib/*.tsbuildinfo"],
   "keywords": ["promise", "retry", "tentative"],

@@ -1,39 +1,41 @@
 interface Options {
   attempts?: {
     max: number
-    delayInMs?: number
-  } | Array<number>
-  canRetry?: (error: Error, attemptIndex: number) => boolean
-  onRetry?: (attemptIndex: number, attemptDelays: Array<number>) => void
+    delay?: number | ((attemptError: Error, attemptIndex: number) => number)
+  }
+  canRetry?: (attemptError: Error, attemptIndex: number) => boolean
+  onRetry?: (attemptError: Error, attemptIndex: number, attemptDelay: number) => void
 }
 
 interface Settings {
-  attemptDelays: Array<number>
-  canRetry?: (error: Error, attemptIndex: number) => boolean
-  onRetry?: (attemptIndex: number, attemptDelays: Array<number>) => void
+  max: number
+  getDelay: (attemptError: Error, attemptIndex: number) => number
+  canRetry?: (attemptError: Error, attemptIndex: number) => boolean
+  onRetry?: (attemptError: Error, attemptIndex: number, attemptDelay: number) => void
 }
 
 type Retryable<Arguments, Output> = (...args: Array<Arguments>) => Promise<Output>
 
-const DEFAULT_DELAY_IN_MS = 1000
+const DEFAULT_DELAY = 0
 
-export default function withRetries<Arguments, Output>(
+export default function tente<Arguments, Output>(
   fn: Retryable<Arguments, Output>,
   options: Options = {}
 ): Retryable<Arguments, Output> {
-  const { attemptDelays, canRetry, onRetry } = getSettings(options)
+  const { max, getDelay, canRetry, onRetry } = getSettings(options)
   let attemptIndex = 0
 
   const retry: Retryable<Arguments, Output> = (...args: Array<Arguments>) =>
     fn(...args)
       .catch(async (error) => {
-        const delay = attemptDelays.at(attemptIndex)
-        if (delay === undefined || canRetry?.(error, attemptIndex) === false) {
+        if (attemptIndex >= max || canRetry?.(error, attemptIndex) === false) {
           throw error
         }
 
+        const delay = getDelay(error, attemptIndex)
+
         if (onRetry !== undefined) {
-          onRetry(attemptIndex, attemptDelays)
+          onRetry(error, attemptIndex, delay)
         }
 
         await sleep(delay)
@@ -47,22 +49,27 @@ export default function withRetries<Arguments, Output>(
 }
 
 function getSettings(options: Options): Settings {
-  let attemptDelays: Array<number>
-  if (Array.isArray(options.attempts)) {
-    attemptDelays = options.attempts.map((delay) => Math.max(delay, 0))
-  } else {
-    const attempts = {
-      max: options.attempts?.max ?? 0,
-      delayInMs: options.attempts?.delayInMs ?? DEFAULT_DELAY_IN_MS
+  const max = options.attempts?.max ?? 0
+
+  const delayOption = options.attempts?.delay
+
+  const getDelay = (attemptError: Error, attemptIndex: number) => {
+    let delay = delayOption ?? DEFAULT_DELAY
+
+    if (typeof delay === 'function') {
+      delay = delay(attemptError, attemptIndex)
     }
-    attemptDelays = Array.from({ length: attempts.max }, () => attempts.delayInMs)
+
+    delay = isFinite(delay) ? delay : DEFAULT_DELAY
+
+    return Math.max(delay, 0)
   }
 
   const canRetry = options.canRetry
 
   const onRetry = options.onRetry
 
-  return { attemptDelays, canRetry, onRetry }
+  return { max, getDelay, canRetry, onRetry }
 }
 
 function sleep(ms: number): Promise<void> {
