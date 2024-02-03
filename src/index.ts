@@ -14,38 +14,19 @@ interface Settings {
   onRetry?: (attemptError: Error, attemptIndex: number, attemptDelay: number) => void
 }
 
-type Retryable<Arguments, Output> = (...args: Array<Arguments>) => Promise<Output>
+type Retryable = (...args: Array<unknown>) => Promise<unknown>
 
 const DEFAULT_DELAY = 0
 
-export default function tente<Arguments, Output>(
-  fn: Retryable<Arguments, Output>,
+export default function tente<F extends Retryable>(
+  fn: F,
   options: Options = {}
-): Retryable<Arguments, Output> {
-  const { max, getDelay, canRetry, onRetry } = getSettings(options)
-  let attemptIndex = 0
+): F {
+  const settings = getSettings(options)
 
-  const retry: Retryable<Arguments, Output> = (...args: Array<Arguments>) =>
-    fn(...args)
-      .catch(async (error) => {
-        if (attemptIndex >= max || canRetry?.(error, attemptIndex) === false) {
-          throw error
-        }
+  const withRetries = getWithRetries(settings)
 
-        const delay = getDelay(error, attemptIndex)
-
-        if (onRetry !== undefined) {
-          onRetry(error, attemptIndex, delay)
-        }
-
-        await sleep(delay)
-
-        attemptIndex++
-
-        return retry(...args)
-      })
-
-  return retry
+  return getProxy(fn, withRetries)
 }
 
 function getSettings(options: Options): Settings {
@@ -70,6 +51,52 @@ function getSettings(options: Options): Settings {
   const onRetry = options.onRetry
 
   return { max, getDelay, canRetry, onRetry }
+}
+
+function getWithRetries<F extends Retryable>(settings: Settings) {
+  const { max, getDelay, canRetry, onRetry } = settings
+
+  let attemptIndex = 0
+
+  const withRetries = (fn: F, ...args: Parameters<typeof fn>): Promise<unknown> =>
+    fn(...args)
+      .catch(async (error: Error) => {
+        if (attemptIndex >= max || canRetry?.(error, attemptIndex) === false) {
+          throw error
+        }
+
+        const delay = getDelay(error, attemptIndex)
+
+        if (onRetry !== undefined) {
+          onRetry(error, attemptIndex, delay)
+        }
+
+        await sleep(delay)
+
+        attemptIndex++
+
+        return withRetries(fn, ...args)
+      })
+
+  return withRetries
+}
+
+function getProxy<F extends Retryable>(fn: F, withRetries: ReturnType<typeof getWithRetries>) {
+  return new Proxy(fn, {
+    get(target, prop) { // this-recoverying, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy#no_private_property_forwarding
+      const value = Reflect.get(target, prop)
+      if (value instanceof Function) {
+        return function (...args: Parameters<F>) {
+          return Reflect.apply(value, target, args)
+        }
+      }
+      return value
+    },
+
+    async apply(target, _, args: Parameters<F>) {
+      return withRetries(target, ...args)
+    }
+  })
 }
 
 function sleep(ms: number): Promise<void> {

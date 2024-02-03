@@ -274,4 +274,62 @@ describe('tente', () => {
       })
     })
   })
+
+  describe('proxifies the function object', () => {
+    ['properties', 'methods'].forEach((type) => {
+      test(`allowing getting public ${type}`, () => {
+        const value = type === 'methods' ? jest.fn() : 'value'
+        const fn = () => Promise.resolve()
+        fn.prop = value
+
+        const retry = tente(fn)
+
+        expect(retry.prop).toBe(value)
+        if (type === 'methods') {
+          (retry as any).prop()
+          expect(value).toHaveBeenCalled()
+        }
+      })
+
+      test(`allowing setting public ${type}`, () => {
+        const value = type === 'methods' ? jest.fn() : 'value'
+        const fn = () => Promise.resolve()
+
+        const retry = tente(fn)
+        ;(retry as any).prop = value
+
+        expect((fn as any).prop).toBeDefined()
+        expect((fn as any).prop).toBe(value)
+        if (type === 'methods') {
+          (fn as any).prop()
+          expect(value).toHaveBeenCalled()
+        }
+      })
+
+      test(`allowing getting private ${type}`, () => {
+        const value = type === 'methods' ? jest.fn() : 'value'
+        class F extends Function {
+          #prop = value
+
+          constructor() {
+            super('return Promise.resolve()')
+          }
+
+          get prop() {
+            return this.#prop
+          }
+        }
+
+        const fn = new F()
+
+        const retry = tente(fn as any)
+
+        expect(retry.prop).toBe(value)
+        if (type === 'methods') {
+          (retry as any).prop()
+          expect(value).toHaveBeenCalled()
+        }
+      })
+    })
+  })
 })
