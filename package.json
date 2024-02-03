@@ -7,7 +7,10 @@
   "keywords": ["promise", "retry", "tentative"],
   "author": "SL",
   "license": "ISC",
-  "repository": "gitlab:sim-la/tentative",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/sim-la/tentative.git"
+  },
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
