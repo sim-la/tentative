@@ -52,7 +52,7 @@ bun install tentative
 #### Deno
 
 No installation required.
-Import the function directly from the URL `https://deno.land/x/tentative/index.ts` (see examples below).
+Import the function directly from the URL `https://deno.land/x/tentative` (see examples below).
 
 ## 💡 Examples
 
@@ -67,7 +67,7 @@ Retry only if the error is a DNS lookup error and log a message on every retry.
 // npm & Bun
 import t from 'tentative'
 // Deno
-import t from 'https://deno.land/x/tentative/index.ts'
+import t from 'https://deno.land/x/tentative'
 
 const asyncFct = (/* some arguments */) => new Promise(/* some great code */)
 
@@ -96,7 +96,7 @@ Retry an async function 10 times maximum with a 3-second delay on DNS lookup err
 // npm & Bun
 import t from 'tentative'
 // Deno
-import t from 'https://deno.land/x/tentative/index.ts'
+import t from 'https://deno.land/x/tentative'
 
 const asyncFct = (/* some arguments */) => new Promise(/* some great code */)
 
@@ -121,7 +121,7 @@ Retry an async function 7 times maximum with a 1-second incremental delay starti
 // npm & Bun
 import t from 'tentative'
 // Deno
-import t from 'https://deno.land/x/tentative/index.ts'
+import t from 'https://deno.land/x/tentative'
 
 const asyncFct = (/* some arguments */) => new Promise(/* some great code */)
 
@@ -146,7 +146,7 @@ Retry an async function 3 times maximum with different custom delays.
 // npm & Bun
 import t from 'tentative'
 // Deno
-import t from 'https://deno.land/x/tentative/index.ts'
+import t from 'https://deno.land/x/tentative'
 
 const asyncFct = (/* some arguments */) => new Promise(/* some great code */)
 
