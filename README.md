@@ -43,6 +43,18 @@ The output can be used just like the original function.
 npm install tentative
 ```
 
+#### Yarn
+
+```sh
+yarn add tentative
+```
+
+#### pnpm
+
+```sh
+pnpm install tentative
+```
+
 #### Bun
 
 ```sh
@@ -58,13 +70,34 @@ Import the function directly from the URL `https://deno.land/x/tentative/mod.ts`
 
 For the sake of simplicity, here the `tentative` exported function is called `t`, but use whatever name that makes sense (such as `tente`, `withRetries`, `retry`, etc.).
 
+### Empower `fetch` with a retry strategy
+
+Create a function that will work exactly like `fetch` but with 4 times maximum retries with a 2-second delay between retries.
+
+```javascript
+// npm, Yarn, pnpm & Bun
+import t from 'tentative'
+// Deno
+import t from 'https://deno.land/x/tentative/mod.ts'
+
+const powerFetch = t(
+  fetch,
+  { attempts: { max: 4, delay: 2000 } }
+)
+
+await powerFetch(/* use it exactly as `fetch` */)
+  .then(/* 🎉 */)
+  .catch(/* in case it fails even after the retries 🤷 */)
+```
+
+
 ### Fixed delay with conditional and logging
 
 Retry an async function 4 times maximum with a 5-second delay between retries.
 Retry only if the error is a DNS lookup error and log a message on every retry.
 
 ```javascript
-// npm & Bun
+// npm, Yarn, pnpm & Bun
 import t from 'tentative'
 // Deno
 import t from 'https://deno.land/x/tentative/mod.ts'
@@ -93,7 +126,7 @@ await p()
 Retry an async function 10 times maximum with a 3-second delay on DNS lookup errors and with a random delay between 5 to 10 seconds on other errors.
 
 ```javascript
-// npm & Bun
+// npm, Yarn, pnpm & Bun
 import t from 'tentative'
 // Deno
 import t from 'https://deno.land/x/tentative/mod.ts'
@@ -118,7 +151,7 @@ await p()
 Retry an async function 7 times maximum with a 1-second incremental delay starting at 2 seconds.
 
 ```javascript
-// npm & Bun
+// npm, Yarn, pnpm & Bun
 import t from 'tentative'
 // Deno
 import t from 'https://deno.land/x/tentative/mod.ts'
@@ -143,7 +176,7 @@ await p()
 Retry an async function 3 times maximum with different custom delays.
 
 ```javascript
-// npm & Bun
+// npm, Yarn, pnpm & Bun
 import t from 'tentative'
 // Deno
 import t from 'https://deno.land/x/tentative/mod.ts'
